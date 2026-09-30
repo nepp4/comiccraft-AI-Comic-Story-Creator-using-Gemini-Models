@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ComicCraft - AI Comic Story Creator</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header class="hero">
+            <div class="badge">GEMINI POWERED</div>
+
+            <h1>ComicCraft</h1>
+
+            <p>AI Comic Story Creator using Gemini Models</p>
+        </header>
+
+
+        <section class="card">
+
+            <h2>Create Your Comic</h2>
+
+            <label for="topic">Story Topic</label>
+
+            <input
+                type="text"
+                id="topic"
+                placeholder="Example: A student discovers a secret robot in college"
+            >
+
+
+            <div class="grid">
+
+                <div>
+                    <label for="genre">Genre</label>
+
+                    <select id="genre">
+                        <option>Adventure</option>
+                        <option>Mystery</option>
+                        <option>Fantasy</option>
+                        <option>Science Fiction</option>
+                        <option>Comedy</option>
+                        <option>Friendship</option>
+                    </select>
+                </div>
+
+
+                <div>
+                    <label for="panels">Number of Panels</label>
+
+                    <select id="panels">
+                        <option value="4">4 Panels</option>
+                        <option value="6" selected>6 Panels</option>
+                        <option value="8">8 Panels</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <label for="style">Visual Style</label>
+
+            <select id="style">
+                <option>Colorful comic</option>
+                <option>Black and white manga</option>
+                <option>Anime comic</option>
+                <option>Cartoon style</option>
+            </select>
+
+
+            <button id="generateBtn">
+                Generate Comic
+            </button>
+
+            <p id="status"></p>
+
+        </section>
+
+
+        <section id="result" class="result hidden">
+        </section>
+
+    </div>
+
+
+    <script>
+
+        const generateButton =
+            document.getElementById("generateBtn");
+
+        const status =
+            document.getElementById("status");
+
+        const result =
+            document.getElementById("result");
+
+
+        generateButton.addEventListener(
+            "click",
+            async function () {
+
+                const topic =
+                    document.getElementById("topic")
+                    .value
+                    .trim();
+
+                const genre =
+                    document.getElementById("genre")
+                    .value;
+
+                const panels =
+                    Number(
+                        document.getElementById("panels")
+                        .value
+                    );
+
+                const style =
+                    document.getElementById("style")
+                    .value;
+
+
+                if (!topic) {
+
+                    status.textContent =
+                        "Please enter a story topic.";
+
+                    return;
+                }
+
+
+                generateButton.disabled = true;
+
+                status.textContent =
+                    "Creating your comic...";
+
+
+                try {
+
+                    const response =
+                        await fetch("/generate", {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                topic: topic,
+                                genre: genre,
+                                panels: panels,
+                                style: style
+                            })
+                        });
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+                        throw new Error(
+                            data.error ||
+                            "Something went wrong."
+                        );
+                    }
+
+
+                    result.innerHTML = `
+
+                        <h2>${escapeHtml(data.title)}</h2>
+
+                        <p class="summary">
+                            ${escapeHtml(data.summary)}
+                        </p>
+
+                        <div class="panels">
+
+                            ${data.panels.map(
+                                panel => `
+
+                                <article class="panel">
+
+                                    <div class="panel-number">
+                                        Panel ${panel.panel}
+                                    </div>
+
+                                    <h3>Scene</h3>
+
+                                    <p>
+                                        ${escapeHtml(panel.scene)}
+                                    </p>
+
+                                    <h3>
+                                        Dialogue / Narration
+                                    </h3>
+
+                                    <p>
+                                        ${escapeHtml(panel.dialogue)}
+                                    </p>
+
+                                    <h3>Image Prompt</h3>
+
+                                    <p class="prompt">
+                                        ${escapeHtml(
+                                            panel.image_prompt
+                                        )}
+                                    </p>
+
+                                </article>
+
+                            `).join("")}
+
+                        </div>
+                    `;
+
+
+                    result.classList.remove("hidden");
+
+                    status.textContent =
+                        "Comic created successfully!";
+
+                } catch (error) {
+
+                    status.textContent =
+                        error.message;
+
+                } finally {
+
+                    generateButton.disabled = false;
+
+                }
+
+            }
+        );
+
+
+        function escapeHtml(value) {
+
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+    </script>
+
+</body>
+</html>
