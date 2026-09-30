@@ -1,0 +1,34 @@
+Project Title:
+ComicCraft – AI Comic Story Creator using Gemini Models
+
+Objective:
+To create an AI-powered web application that converts a user's story idea into a structured multi-panel comic story.
+
+Technologies Used:
+Python
+Flask
+HTML
+CSS
+JavaScript
+Google Gemini API
+
+Main Features:
+1. Enter a story topic.
+2. Select comic genre.
+3. Select number of panels.
+4. Select visual style.
+5. Generate an AI comic story using Gemini.
+6. Display scene, dialogue and image prompt for each panel.
+
+Project Workflow:
+User enters topic
+        ↓
+Frontend
+        ↓
+Flask Backend
+        ↓
+Gemini API
+        ↓
+AI Comic Story
+        ↓
+Comic Panels displayed on screen
