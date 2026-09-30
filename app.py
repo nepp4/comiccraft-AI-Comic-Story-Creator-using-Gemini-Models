@@ -29,8 +29,6 @@ if st.button("🚀 Generate Full Comic with Images"):
     else:
         try:
             genai.configure(api_key=clean_key)
-            
-            # Using the required model directly
             model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
@@ -80,7 +78,8 @@ if st.button("🚀 Generate Full Comic with Images"):
                         img_prompt = urllib.parse.quote(f"{p.get('image_prompt')}, comic book style, high quality")
                         image_url = f"https://image.pollinations.ai/prompt/{img_prompt}?width=512&height=512&nologo=true"
                         
-                        st.image(image_url, use_column_width=True, caption=f"Panel {p.get('panel_number')}")
+                        # Corrected parameter for Streamlit
+                        st.image(image_url, use_container_width=True, caption=f"Panel {p.get('panel_number')}")
                         
                         if p.get("sfx"):
                             st.warning(f"💥 **SFX:** {p.get('sfx')}")
