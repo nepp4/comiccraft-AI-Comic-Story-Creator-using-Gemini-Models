@@ -17,7 +17,7 @@ with st.sidebar:
 
 story_idea = st.text_area(
     "Enter your story premise or concept:", 
-    placeholder="E.g., A police officer trying to catch a thief in the neon city"
+    placeholder="E.g., A police officer trying to catch a thief in a neon city"
 )
 
 if st.button("🚀 Generate Full Comic with Images"):
@@ -30,23 +30,8 @@ if st.button("🚀 Generate Full Comic with Images"):
         try:
             genai.configure(api_key=clean_key)
             
-            # Automatically find the active model supported by your API key
-            available = [
-                m.name for m in genai.list_models() 
-                if "generateContent" in m.supported_generation_methods
-            ]
-            
-            chosen_model = None
-            # Check for standard available models in order
-            for target in ["models/gemini-2.5-flash", "models/gemini-pro", "models/gemini-1.0-pro"]:
-                if target in available:
-                    chosen_model = target
-                    break
-            
-            if not chosen_model and available:
-                chosen_model = available[0]
-                
-            model = genai.GenerativeModel(chosen_model)
+            # Using the required model directly
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
             You are a professional comic creator. Create a {panels_count}-panel comic strip based on:
@@ -54,15 +39,14 @@ if st.button("🚀 Generate Full Comic with Images"):
             Genre: {genre}
             Style: {art_style}
 
-            Respond ONLY with a valid raw JSON object (without markdown formatting, without backticks ```json).
-            Format:
+            Respond ONLY with a valid JSON object without backticks or markdown formatting.
             {{
               "title": "Comic Title",
               "synopsis": "One line summary",
               "panels": [
                 {{
                   "panel_number": 1,
-                  "image_prompt": "Detailed scene prompt for AI generation, {art_style}, highly detailed comic frame, vibrant colors",
+                  "image_prompt": "Scene visual description, {art_style}, comic art frame",
                   "speaker": "Character name",
                   "dialogue": "Spoken sentence",
                   "sfx": "SFX sound"
@@ -75,7 +59,6 @@ if st.button("🚀 Generate Full Comic with Images"):
                 response = model.generate_content(prompt)
                 raw_text = response.text.strip()
                 
-                # Clean markdown blocks if returned by the model
                 if "```" in raw_text:
                     parts = raw_text.split("```")
                     raw_text = parts[1]
@@ -89,15 +72,13 @@ if st.button("🚀 Generate Full Comic with Images"):
                 st.write(f"*{data.get('synopsis', '')}*")
                 st.markdown("---")
                 
-                # Display panels side by side in a 2-column layout
                 cols = st.columns(2)
                 for idx, p in enumerate(data.get("panels", [])):
                     with cols[idx % 2]:
                         st.markdown(f"### 🖼️ Panel {p.get('panel_number')}")
                         
-                        # Generate real AI image dynamically via free image API
                         img_prompt = urllib.parse.quote(f"{p.get('image_prompt')}, comic book style, high quality")
-                        image_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){img_prompt}?width=512&height=512&nologo=true"
+                        image_url = f"https://image.pollinations.ai/prompt/{img_prompt}?width=512&height=512&nologo=true"
                         
                         st.image(image_url, use_column_width=True, caption=f"Panel {p.get('panel_number')}")
                         
