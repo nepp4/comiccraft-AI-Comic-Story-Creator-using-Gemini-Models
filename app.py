@@ -1,15 +1,21 @@
 import streamlit as st
 import urllib.parse
+import random
 
 st.set_page_config(page_title="ComicCraft: AI Comic Story Creation", page_icon="📚", layout="wide")
 
 st.title("📚 ComicCraft: AI Comic Story Creation")
-st.caption("AI-Powered Comic Story and Visual Storyboard Generator")
+st.caption("AI-Powered Comic Story and Dynamic Visual Comic Panel Generator")
 
 with st.sidebar:
-    st.header("⚙ Configuration")
+    st.header("⚙️ Configuration")
     genre = st.selectbox("Story Genre", ["Superhero", "Sci-Fi", "Action & Adventure", "Fantasy", "Mystery", "Anime"])
-    art_style = st.selectbox("Visual Style", ["Comic Book Style", "Manga / Anime", "Vintage 90s Comic", "Watercolor Graphic Novel"])
+    art_style = st.selectbox("Visual Style", [
+        "Classic American Comic Book (Marvel/DC style)",
+        "Japanese Manga / Anime",
+        "Vintage 90s Graphic Novel",
+        "Cyberpunk Vibrant Comic"
+    ])
     panels_count = st.slider("Visual Story Panels", min_value=3, max_value=4, value=4)
 
 story_idea = st.text_area(
@@ -17,65 +23,87 @@ story_idea = st.text_area(
     placeholder="E.g., a girl found speaking cat in the road"
 )
 
-# Reliable image fallback sources
-IMAGE_SEEDS = [
-    "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80"
-]
-
 if st.button("🚀 Create Full Comic Story"):
-    if not story_idea.strip():
+    clean_idea = story_idea.strip()
+    if not clean_idea:
         st.warning("Please enter a story concept!")
     else:
-        with st.spinner("Creating comic story and rendering visual panels..."):
-            title = f"The Legend of {story_idea.strip().title()[:28]}"
-            logline = f"An epic {genre.lower()} journey triggered when {story_idea.strip()}."
+        with st.spinner("Drawing comic art panels and scripting dialogue..."):
+            title = f"The Tale of {clean_idea.title()[:30]}"
             
             # Story Section
             st.markdown(f"# 📖 {title}")
-            st.markdown(f"**Logline:** *{logline}*")
+            st.markdown(f"**Genre:** `{genre}` | **Art Style:** `{art_style}`")
             
             st.subheader("📜 Story Narrative")
             st.write(
-                f"The sun hung low over the horizon as a strange turn of fate intervened. "
-                f"{story_idea.strip().capitalize()}. What appeared to be an ordinary encounter immediately spiraled "
-                f"into a captivating {genre.lower()} saga. Secrets unravelled, revealing hidden dimensions and choices "
-                f"that would decide everyone's future."
+                f"An ordinary day took a magical twist when {clean_idea}. "
+                f"Under the vibrant atmosphere of a {art_style.lower()}, unexpected secrets began to surface. "
+                f"What started as a shocking encounter soon opened doors to an unforgettable adventure, "
+                f"pulling everyone into a whirlwind of destiny and courage."
             )
             
             st.subheader("👥 Character Profiles")
-            st.markdown(f"- **Hero / Protagonist**: Brave, quick-witted, navigating the mystery of {story_idea.strip()[:20]}.")
-            st.markdown(f"- **Mysterious Companion**: A bizarre talking guide whose cryptic words hold the key to survival.")
+            st.markdown(f"- **Lead Character**: A courageous young protagonist experiencing the event of '{clean_idea[:25]}'.")
+            st.markdown(f"- **Key Figure / Mystery Guide**: The talking, enchanted creature whose voice holds ancient secrets.")
             
             st.markdown("---")
             
-            # Panels Section
-            st.subheader("🖼 Comic Story Visual Panels")
+            # Panels with Story-Specific Prompts
+            st.subheader("🖼️ Comic Story Visual Panels")
             
-            actions = [
-                ("The Roadside Discovery", "Did you just talk to me?!", "GASPPP!"),
-                ("The Hidden Truth", "There isn't much time, look closely!", "HUMMM..."),
-                ("Unexpected Confrontation", "Stop right there! You cannot take that cat!", "CLASH!"),
-                ("The Escape Into The Unknown", "Hold on, we're jumping across!", "SWOOOSH!")
+            panel_data = [
+                {
+                    "title": "The Strange Encounter",
+                    "action": f"Close-up comic illustration of {clean_idea}, wide shocked eyes, detailed street background",
+                    "dialogue": "Wait... did you just speak words to me?!",
+                    "sfx": "GASP!"
+                },
+                {
+                    "title": "The Secret Unfolds",
+                    "action": f"Mystical talking creature replying with glowing eyes, {clean_idea}, glowing aura, dramatic angle",
+                    "dialogue": "Listen carefully, there isn't much time before they arrive!",
+                    "sfx": "MEOWW-SHING!"
+                },
+                {
+                    "title": "Danger Approaches",
+                    "action": f"Dark robotic shadows chasing down {clean_idea}, dynamic action motion lines, intense perspective",
+                    "dialogue": "They tracked us down! We need to move now!",
+                    "sfx": "RUMBLE!"
+                },
+                {
+                    "title": "Leap of Faith",
+                    "action": f"Hero running away holding the miraculous talking creature, jumping across rooftops, comic burst background",
+                    "dialogue": "Hold on tight! Here we go!",
+                    "sfx": "WHOOSH!"
+                }
             ]
             
+            # Style prompt modifiers to force authentic comic look
+            style_tags = (
+                "comic book art style, graphic novel panel, clear bold ink outlines, "
+                "vibrant cinematic comic coloring, speech bubble aesthetic, masterpiece"
+            )
+            
             cols = st.columns(2)
+            base_seed = random.randint(100, 99999)
+            
             for idx in range(panels_count):
-                act_title, dialogue, sfx = actions[idx % len(actions)]
+                p = panel_data[idx % len(panel_data)]
                 with cols[idx % 2]:
-                    st.markdown(f"#### Panel {idx + 1}: {act_title}")
+                    st.markdown(f"#### Panel {idx + 1}: {p['title']}")
                     
-                    # Direct reliable comic visual feed
-                    st.image(
-                        IMAGE_SEEDS[idx % len(IMAGE_SEEDS)], 
-                        use_container_width=True, 
-                        caption=f"Panel {idx + 1} - [{art_style}]"
-                    )
+                    # Exact story-based prompt with heavy comic-style modifiers
+                    full_image_prompt = f"{p['action']}, {art_style}, {style_tags}"
+                    encoded_prompt = urllib.parse.quote(full_image_prompt)
                     
-                    st.warning(f"💥 **SFX:** {sfx}")
-                    st.info(f"🗣️ **Dialogue:** \"{dialogue}\"")
+                    # Direct free AI image synthesis url with unique seed for variety
+                    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={base_seed + idx}&nologo=true"
+                    
+                    st.image(image_url, use_container_width=True, caption=f"Panel {idx + 1} - [{art_style}]")
+                    
+                    st.warning(f"💥 **SFX:** {p['sfx']}")
+                    st.info(f"🗣️ **Dialogue:** \"{p['dialogue']}\"")
                     st.markdown("---")
                     
-            st.success("✅ Complete Comic Story & Illustrated Panels Created Successfully!")
+            st.success("✅ Complete Illustrated Comic Story Generated Successfully!")
