@@ -14,61 +14,51 @@ with st.sidebar:
 
 story_idea = st.text_area(
     "Enter your story premise or concept:", 
-    placeholder="E.g., A police officer trying to catch a thief"
+    placeholder="E.g., a police officer trying to catch a thief"
 )
 
 if st.button("Generate Comic Strip"):
-    if not api_key:
+    clean_key = api_key.strip() if api_key else ""
+    if not clean_key:
         st.error("Please provide your Google Gemini API Key in the sidebar.")
     elif not story_idea.strip():
         st.warning("Please enter a story idea!")
     else:
         try:
-            genai.configure(api_key=api_key.strip())
+            genai.configure(api_key=clean_key)
             
-            # Find an available model to avoid 404 version errors
-            available_models = [
-                m.name for m in genai.list_models() 
-                if "generateContent" in m.supported_generation_methods
-            ]
-            
-            chosen_model = None
-            for candidate in ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"]:
-                if candidate in available_models:
-                    chosen_model = candidate
-                    break
-            
-            if not chosen_model and available_models:
-                chosen_model = available_models[0]
-                
-            model = genai.GenerativeModel(chosen_model)
+            # Use recommended Gemini 3.8 Flash model
+            try:
+                model = genai.GenerativeModel("gemini-3.8-flash")
+            except Exception:
+                # Fallback to any active supported model
+                active_models = [
+                    m.name for m in genai.list_models() 
+                    if "generateContent" in m.supported_generation_methods
+                ]
+                model = genai.GenerativeModel(active_models[0])
             
             prompt = f"""
             You are a professional comic scriptwriter. Create a structured comic strip storyboard based on:
-            - Story Idea: {story_idea}
+            - Story: {story_idea}
             - Genre: {genre}
             - Total Panels: {panels_count}
 
-            Format your response clearly as follows:
+            Format your response clearly as:
             # Comic Title: [Title]
-            **Synopsis:** [Brief summary]
-
+            **Synopsis:** [Story summary]
+            
             ## Characters
-            - [Character Name]: [Appearance and visual traits]
-
+            - [Name]: [Visual look and description]
+            
             ## Comic Panels
-            ### Panel 1
-            - **Visual Scene:** [Camera angle and action]
-            - **Dialogue:** [Speaker: Text]
-            - **SFX:** [Sound effect]
-
-            (Continue this structure for all {panels_count} panels)
+            (Provide details for each of the {panels_count} panels with Scene, Dialogue, and SFX)
             """
             
-            with st.spinner("Writing script, dialogue, and blocking panels..."):
+            with st.spinner("Writing script and generating comic panels..."):
                 response = model.generate_content(prompt)
                 st.markdown(response.text)
-                st.success("✅ Comic Strip Storyboard Generated Successfully!")
+                st.success("✅ Comic Strip Created Successfully!")
                 
         except Exception as e:
             st.error(f"Error occurred: {str(e)}")
